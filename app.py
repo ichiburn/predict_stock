@@ -31,7 +31,7 @@ st.write('ティッカーシンボルについては上のリンク（SBI証券�
 
 # データの取得
 try:
-    df_stock = pandas_datareader.data.get_data_yahoo(stock_name, '2022-01-05')
+    df_stock = yf.download(stock_name, '2022-01-05')
     st.header(stock_name + " 2022年1月5日から現在までの価格(USD)")
     st.write(df_stock)
 
@@ -115,9 +115,9 @@ try:
     if st.button('予測する'):
         stock_predict()
 
-except:
+except Exception as e:
     st.error(
-        "エラーが起きているようです。"
+        f"エラーが発生しました：{e}"
     )
 # &copy;で©が出る
 st.write('Copyright &copy; 2021 Tomoyuki Yoshikawa. All Rights Reserved.')
