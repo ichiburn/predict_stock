@@ -10,7 +10,6 @@ import sklearn.linear_model
 import sklearn.model_selection
 from PIL import Image
 import yfinance as yf
-yf.pdr_override()
 
 st.title("AIで株価予測アプリ")
 st.write('AIを使って、株価を予測してみましょう')
