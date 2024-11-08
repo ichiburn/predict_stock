@@ -32,6 +32,7 @@ st.write('ティッカーシンボルについては上のリンク（SBI証券�
 # データの取得
 try:
     df_stock = yf.download(stock_name, '2022-01-05')
+    df_stock = df_stock.reset_index()
     st.header(stock_name + " 2022年1月5日から現在までの価格(USD)")
     st.write(df_stock)
 
