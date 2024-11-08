@@ -49,7 +49,7 @@ try:
     # ローソク足
     fig = go.Figure(
         data = [go.Candlestick(
-            x = df_stock.index,
+            x = df_stock['Date'],
             open = df_stock['Open'],
             high = df_stock['High'],
             low = df_stock['Low'],
