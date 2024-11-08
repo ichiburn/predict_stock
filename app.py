@@ -79,16 +79,19 @@ try:
         df_stock['label'] = df_stock['Close'].shift(-30)
 
         st.header(f'{stock_name} 1か月後を予測しよう（USD）')
-    
+       
         def stock_predict():
             # 予測のための特徴量を準備
-            X = np.array(df_stock.drop(['label', 'SMA', 'change'], axis=1))  # 'Predict'を削除
+            # 欠損値を含むデータを先に削除
+            df_pred = df_stock.dropna().copy()
+            
+            # 特徴量とラベルを準備
+            X = np.array(df_pred.drop(['label', 'SMA', 'change'], axis=1))
             X = StandardScaler().fit_transform(X)
             predict_data = X[-30:]
             X = X[:-30]
-            y = np.array(df_stock['label'].dropna()).flatten()
-            y = y[:-30]
-
+            y = np.array(df_pred['label'][:-30])  # 予測日数分を除外
+            
             # データの分割
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
@@ -114,21 +117,21 @@ try:
             predicted_data = model.predict(predict_data)
             
             # 新しいデータフレームを作成
-            df_pred = pd.DataFrame(index=df_stock.index)
-            df_pred['Close'] = df_stock['Close'].values
-            df_pred['Predict'] = np.nan
+            df_result = pd.DataFrame(index=df_stock.index)
+            df_result['Close'] = df_stock['Close'].values
+            df_result['Predict'] = np.nan
 
             # 予測値を追加
             last_date = df_stock.index[-1]
             future_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), periods=30, freq='B')
             
             for i, date in enumerate(future_dates):
-                df_pred.loc[date, 'Predict'] = predicted_data[i]
+                df_result.loc[date, 'Predict'] = predicted_data[i]
 
             # グラフの作成
             fig, ax = plt.subplots(figsize=(15, 6))
-            ax.plot(df_pred.index, df_pred['Close'], color="green", label="実際の価格")
-            ax.plot(df_pred.index, df_pred['Predict'], color="orange", label="予測価格")
+            ax.plot(df_result.index, df_result['Close'], color="green", label="実際の価格")
+            ax.plot(df_result.index, df_result['Predict'], color="orange", label="予測価格")
             ax.legend()
             plt.xticks(rotation=45)
             plt.tight_layout()
@@ -136,7 +139,7 @@ try:
             plt.close()
             
             # Streamlit用のグラフ
-            st.line_chart(df_pred)
+            st.line_chart(df_result)
             
         # 予測ボタン
         if st.button('予測する'):
