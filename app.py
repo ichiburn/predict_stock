@@ -44,15 +44,12 @@ try:
         # 移動平均の計算と表示
         st.header(f"{stock_name} 終値と14日間平均(USD)")
         df_stock['SMA'] = df_stock['Close'].rolling(window=14).mean()
-        df_stock2 = pd.DataFrame({
-            'Close': df_stock['Close'].values,  # .values を追加
-            'SMA': df_stock['SMA'].values      # .values を追加
-        }, index=df_stock.index)               # インデックスを明示的に設定
+        df_stock2 = df_stock[['Close', 'SMA']]
         st.line_chart(df_stock2)
 
         # 値動きグラフ
         st.header(f"{stock_name} 値動き(USD)")
-        df_stock['change'] = ((df_stock['Close'] - df_stock['Open']) / df_stock['Open'] * 100)
+        df_stock['change'] = (((df_stock['Close'] - df_stock['Open'])) / df_stock['Open'] * 100)
         st.line_chart(df_stock['change'].tail(100))
 
         # ローソク足
@@ -71,33 +68,29 @@ try:
         st.plotly_chart(fig)
 
         # 株価予測のための準備
-        df_pred = df_stock.copy()
-        df_pred['label'] = df_pred['Close'].shift(-30)
+        df_stock['label'] = df_stock['Close'].shift(-30)
 
         st.header(f'{stock_name} 1か月後を予測しよう（USD）')
 
         def stock_predict():
             # 予測のための特徴量を準備
-            feature_columns = ['Open', 'High', 'Low', 'Close', 'Volume']
-            X = df_pred[feature_columns][:-30]
-            y = df_pred['label'][:-30].dropna()
-
-            # データの標準化
-            scaler = StandardScaler()
-            X_scaled = scaler.fit_transform(X)
-            
-            # 予測用データの準備
-            predict_data = scaler.transform(df_pred[feature_columns][-30:])
+            X = np.array(df_stock.drop(['label', 'SMA'], axis_1)
+            X = sklearn.preprocessing.scale(X)
+            predict_data = X[-30:]
+            X = X[:-30]
+            y = np.array(df_stock['label'])
+            y = y[:-30]
 
             # データの分割
-            X_train, X_test, y_train, y_test = train_test_split(X_scaled[:-30], y, test_size=0.2, random_state=42)
+            X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(X, y, test_size=0.2)
 
             # モデルの訓練
-            model = LinearRegression()
+            model = sklearn.linear_model.LinearRegression()
             model.fit(X_train, y_train)
 
             # 精度の評価
             accuracy = model.score(X_test, y_test)
+            # 少数第一位で四捨五入
             st.write(f'正答率は{round(accuracy * 100, 1)}%です。')
 
             # 信頼度の表示
@@ -110,35 +103,25 @@ try:
 
             st.write('オレンジの線(Predict)が予測値です。')
 
-            # 予測の実行
-            predictions = model.predict(predict_data)
+            # 検証データを用いて検証してみる
+            predict_data = model.predict(predict_data)
+            df_stock['Predict'] = np.nan
+            last_date = df_stock.iloc[-1].name
+            one_day = 86400
+            next_unix = last_date.timestamp() + one_day
 
-            # 予測値をデータフレームに追加
-            future_dates = pd.date_range(
-                start=df_pred.index[-1] + pd.Timedelta(days=1),
-                periods=30,
-                freq='B'  # 営業日のみを使用
-            )
+            # 予測のグラフ化
+            for data in predicted_data:
+                next_date = datetime.datetime.fromtimestamp(next_unix)
+                next_unix += one_day
+                df_stock.loc[next_date] = np.append([np.nan] * (len(df_stock.columns)-1), data)
 
-            # 予測結果の可視化を改善
-            df_actual = pd.DataFrame({'価格': df_pred['Close']}, index=df_pred.index)
-            df_pred_future = pd.DataFrame({'価格': predictions}, index=future_dates)
-
-            # Matplotlib でのプロット
-            plt.figure(figsize=(15, 6))
-            plt.plot(plot_df['Date'], plot_df['Actual'], color='green', label='実際の価格')
-            plt.plot(plot_df['Date'], plot_df['Predicted'], color='orange', label='予測価格')
-            plt.legend()
-            plt.xticks(rotation=45)
-            plt.title(f"{stock_name}の株価予測")
-            plt.tight_layout()
+            df_stock['Close'].plot(figsize=(15, 6), color="green")
+            df_stock['Predict'].plot(figsize=(15, 6), color="green")
             
-            st.pyplot(plt)
-            plt.close()
-
             # Streamlit用のグラフ
-            combined_df = pd.concat([df_actual, df_pred_future])
-            st.line_chart(combined_df)
+            df_stock3 = df_stock[['Close', 'Predict']]
+            st.line_chart(df_stock3)
             
         # 予測ボタン
         if st.button('予測する'):
