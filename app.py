@@ -52,10 +52,10 @@ try:
     fig = go.Figure(
         data = [go.Candlestick(
             x = df_stock.index,
-            open = df_stock['Open'],
-            high = df_stock['High'],
-            low = df_stock['Low'],
-            close = df_stock['Close'],
+            open = df_stock['Open', stock_name],
+            high = df_stock['High', stock_name],
+            low = df_stock['Low', stock_name],
+            close = df_stock['Close', stock_name],
             increasing_line_color = 'green',
             decreasing_line_color = 'red',
             )
