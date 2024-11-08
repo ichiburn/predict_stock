@@ -121,20 +121,17 @@ try:
             one_day = 86400
             next_unix = last_date.timestamp() + one_day
 
-            # 予測のグラフ化
-            for data in predicted_data:
-                next_date = datetime.datetime.fromtimestamp(next_unix)
-                next_unix += one_day
-                df_stock.loc[next_date] = np.append([np.nan] * (len(df_stock.columns)-1), data)
-
+            # 予測のグラフ化の部分を修正
             df_stock['Close'].plot(figsize=(15, 6), color="green")
             df_stock['Predict'].plot(figsize=(15, 6), color="orange")
             plt.legend(['実際の価格', '予測価格'])
+            # x軸のフォーマットを調整
+            plt.gcf().autofmt_xdate()  # 日付の表示を見やすく調整
             st.pyplot(plt)
             plt.close()
             
             # Streamlit用のグラフ
-            df_stock3 = df_stock[['Close', 'Predict']]
+            st.line_chart(df_stock[['Close', 'Predict']])
             st.line_chart(df_stock3)
             
         # 予測ボタン
