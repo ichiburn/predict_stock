@@ -74,7 +74,7 @@ try:
 
         def stock_predict():
             # 予測のための特徴量を準備
-            X = np.array(df_stock.drop(['label', 'SMA'], axis_1))
+            X = np.array(df_stock.drop(['label', 'SMA'], axis=1))
             X = sklearn.preprocessing.scale(X)
             predict_data = X[-30:]
             X = X[:-30]
@@ -104,7 +104,7 @@ try:
             st.write('オレンジの線(Predict)が予測値です。')
 
             # 検証データを用いて検証してみる
-            predict_data = model.predict(predict_data)
+            predicted_data = model.predict(predict_data)
             df_stock['Predict'] = np.nan
             last_date = df_stock.iloc[-1].name
             one_day = 86400
