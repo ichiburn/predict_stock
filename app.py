@@ -45,9 +45,9 @@ try:
         st.header(f"{stock_name} 終値と14日間平均(USD)")
         df_stock['SMA'] = df_stock['Close'].rolling(window=14).mean()
         df_stock2 = pd.DataFrame({
-            'Close': df_stock['Close'],
-            'SMA': df_stock['SMA']
-        })
+            'Close': df_stock['Close'].values,  # .values を追加
+            'SMA': df_stock['SMA'].values      # .values を追加
+        }, index=df_stock.index)               # インデックスを明示的に設定
         st.line_chart(df_stock2)
 
         # 値動きグラフ
@@ -120,12 +120,9 @@ try:
                 freq='B'  # 営業日のみを使用
             )
 
-            # 予測結果を可視化用に準備
-            plot_df = pd.DataFrame({
-                'Date': pd.concat([df_pred.index, pd.Series(future_dates)]),
-                'Actual': pd.concat([pd.Series(df_pred['Close']), pd.Series([np.nan] * 30)]),
-                'Predicted': pd.concat([pd.Series([np.nan] * len(df_pred)), pd.Series(predictions)])
-            })
+            # 予測結果の可視化を改善
+            df_actual = pd.DataFrame({'価格': df_pred['Close']}, index=df_pred.index)
+            df_pred_future = pd.DataFrame({'価格': predictions}, index=future_dates)
 
             # Matplotlib でのプロット
             plt.figure(figsize=(15, 6))
@@ -140,9 +137,9 @@ try:
             plt.close()
 
             # Streamlit用のグラフ
-            plot_df.set_index('Date', inplace=True)
-            st.line_chart(plot_df[['Actual', 'Predicted']])
-
+            combined_df = pd.concat([df_actual, df_pred_future])
+            st.line_chart(combined_df)
+            
         # 予測ボタン
         if st.button('予測する'):
             stock_predict()
