@@ -108,7 +108,6 @@ try:
             next_unix += one_day
             df_stock.loc[next_date] = np.append([np.nan] * (len(df_stock.columns)-1), data)
 
-            df_stock.index = df_stock.index.tz_localize(None)  # タイムゾーン情報を削除
             df_stock = df_stock.reset_index()  # インデックスを通常の列に変換
             df_stock['Date'] = pd.to_datetime(df_stock['Date'])  # 'Date'列を日付型に変換
             
