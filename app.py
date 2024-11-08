@@ -80,7 +80,7 @@ try:
 
         st.header(f'{stock_name} 1か月後を予測しよう（USD）')
 
-def stock_predict():
+        def stock_predict():
             # 予測のための特徴量を準備
             X = np.array(df_stock.drop(['label', 'SMA', 'change'], axis=1))
             # sklearn.preprocessing.scale を StandardScaler() に変更
