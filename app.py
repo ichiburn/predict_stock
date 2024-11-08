@@ -55,13 +55,13 @@ try:
         # ローソク足
         fig = go.Figure(
             data=[go.Candlestick(
-                x=df_stock.index,
-                open=df_stock['Open'],
-                high=df_stock['High'],
-                low=df_stock['Low'],
-                close=df_stock['Close'],
-                increasing_line_color='green',
-                decreasing_line_color='red'
+                x = df_stock.index,
+                open = df_stock['Open'],
+                high = df_stock['High'],
+                low = df_stock['Low'],
+                close = df_stock['Close'],
+                increasing_line_color = 'green',
+                decreasing_line_color = 'red'
             )]
         )
         st.header(f"{stock_name} キャンドルスティック")
@@ -74,7 +74,7 @@ try:
 
         def stock_predict():
             # 予測のための特徴量を準備
-            X = np.array(df_stock.drop(['label', 'SMA'], axis_1)
+            X = np.array(df_stock.drop(['label', 'SMA'], axis_1))
             X = sklearn.preprocessing.scale(X)
             predict_data = X[-30:]
             X = X[:-30]
