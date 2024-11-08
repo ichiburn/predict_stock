@@ -80,7 +80,7 @@ try:
 
         st.header(f'{stock_name} 1か月後を予測しよう（USD）')
 
-def stock_predict():
+        def stock_predict():
             # 予測のための特徴量を準備
             # 欠損値を削除してから特徴量を準備
             df_pred = df_stock.dropna()  # 追加: 欠損値を持つ行を削除
