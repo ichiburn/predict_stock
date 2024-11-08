@@ -80,26 +80,25 @@ try:
 
         st.header(f'{stock_name} 1か月後を予測しよう（USD）')
 
-        def stock_predict():
+def stock_predict():
             # 予測のための特徴量を準備
-            X = np.array(df_stock.drop(['label', 'SMA', 'change'], axis=1))
-            # sklearn.preprocessing.scale を StandardScaler() に変更
+            # 欠損値を削除してから特徴量を準備
+            df_pred = df_stock.dropna()  # 追加: 欠損値を持つ行を削除
+            
+            X = np.array(df_pred.drop(['label', 'SMA', 'change'], axis=1))
             X = StandardScaler().fit_transform(X)
             predict_data = X[-30:]
             X = X[:-30]
-            y = np.array(df_stock['label'].dropna()).flatten()
+            y = np.array(df_pred['label'].dropna()).flatten()
             y = y[:-30]
 
             # データの分割
-            # sklearn.model_selection. を削除
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
             # モデルの訓練
-            # sklearn.linear_model. を削除
             model = LinearRegression()
             model.fit(X_train, y_train)
 
-            # 以下は同じ
             # 精度の評価
             accuracy = model.score(X_test, y_test)
             # 少数第一位で四捨五入
