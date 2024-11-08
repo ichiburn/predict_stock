@@ -107,7 +107,8 @@ try:
             next_date = datetime.datetime.fromtimestamp(next_unix)
             next_unix += one_day
             df_stock.loc[next_date] = np.append([np.nan] * (len(df_stock.columns)-1), data)
-        
+
+            df_stock.index = df_stock.index.tz_localize(None)  # タイムゾーン情報を削除
             df_stock = df_stock.reset_index()  # インデックスを通常の列に変換
             df_stock['Date'] = pd.to_datetime(df_stock['Date'])  # 'Date'列を日付型に変換
             
@@ -123,7 +124,7 @@ try:
                 'Predict': df_stock['Predict'],
                 'Date': df_stock['Date']
             })
-        st.line_chart(df_stock3.set_index('Date'))
+            st.line_chart(df_stock3.set_index('Date'))
     # ボタンの設置
     # ボタンを押すとstock_predict()が発動
     if st.button('予測する'):
