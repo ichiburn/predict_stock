@@ -69,7 +69,7 @@ try:
     # 株価の予測
     df_stock['label'] = df_stock['Close'].shift(-30)
     st.header(stock_name + ' 1か月後を予測しよう（USD）')
-    def stock_predict():
+    def stock_predict(df_stock):
         # 機械学習(マシンラーニング)
         X = np.array(df_stock.drop(['label', 'SMA'], axis=1))
         X = sklearn.preprocessing.scale(X)
@@ -108,27 +108,26 @@ try:
             next_unix += one_day
             df_stock.loc[next_date] = np.append([np.nan] * (len(df_stock.columns)-1), data)
         
-        df_stock = df_stock.reset_index()  # インデックスを通常の列に変換
-        df_stock['Date'] = pd.to_datetime(df_stock['Date'])  # 'Date'列を日付型に変換
-        
-        plt.figure(figsize=(15, 6))
-        plt.plot(df_stock['Date'], df_stock[('Close', stock_name)], color='green', label='Close')
-        plt.plot(df_stock['Date'], df_stock['Predict'], color='orange', label='Predict')
-        plt.legend()
-        
-        st.pyplot(plt)
-        
-        df_stock3 = pd.DataFrame({
-            'Close': df_stock[('Close', stock_name)],
-            'Predict': df_stock['Predict'],
-            'Date': df_stock['Date']
-        })
+            df_stock = df_stock.reset_index()  # インデックスを通常の列に変換
+            df_stock['Date'] = pd.to_datetime(df_stock['Date'])  # 'Date'列を日付型に変換
+            
+            plt.figure(figsize=(15, 6))
+            plt.plot(df_stock['Date'], df_stock[('Close', stock_name)], color='green', label='Close')
+            plt.plot(df_stock['Date'], df_stock['Predict'], color='orange', label='Predict')
+            plt.legend()
+            
+            st.pyplot(plt)
+            
+            df_stock3 = pd.DataFrame({
+                'Close': df_stock[('Close', stock_name)],
+                'Predict': df_stock['Predict'],
+                'Date': df_stock['Date']
+            })
         st.line_chart(df_stock3.set_index('Date'))
-
     # ボタンの設置
     # ボタンを押すとstock_predict()が発動
     if st.button('予測する'):
-        stock_predict()
+        stock_predict(df_stock)
 
 except Exception as e:
     st.error(
