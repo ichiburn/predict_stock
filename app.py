@@ -78,10 +78,10 @@ try:
         def stock_predict():
             # 予測のための特徴量を準備
             X = np.array(df_stock.drop(['label', 'SMA', 'change'], axis=1))
-            X = sklearn.preprocessing.scale(X)
+            X = StandardScaler().fit_transform(X)
             predict_data = X[-30:]
             X = X[:-30]
-            y = np.array(df_stock['label'])
+            y = np.array(df_stock['label'].dropna())
             y = y[:-30]
 
             # データの分割
@@ -120,7 +120,10 @@ try:
                 df_stock.loc[next_date] = np.append([np.nan] * (len(df_stock.columns)-1), data)
 
             df_stock['Close'].plot(figsize=(15, 6), color="green")
-            df_stock['Predict'].plot(figsize=(15, 6), color="green")
+            df_stock['Predict'].plot(figsize=(15, 6), color="orange")
+            plt.legend(['実際の価格', '予測価格'])
+            st.pyplot(plt)
+            plt.close()
             
             # Streamlit用のグラフ
             df_stock3 = df_stock[['Close', 'Predict']]
