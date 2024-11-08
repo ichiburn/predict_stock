@@ -79,10 +79,10 @@ try:
         df_stock['label'] = df_stock['Close'].shift(-30)
 
         st.header(f'{stock_name} 1か月後を予測しよう（USD）')
-
+    
         def stock_predict():
             # 予測のための特徴量を準備
-            X = np.array(df_stock.drop(['label', 'SMA', 'change', 'Predict'], axis=1))
+            X = np.array(df_stock.drop(['label', 'SMA', 'change'], axis=1))  # 'Predict'を削除
             X = StandardScaler().fit_transform(X)
             predict_data = X[-30:]
             X = X[:-30]
@@ -112,10 +112,13 @@ try:
 
             # 検証データを用いて検証してみる
             predicted_data = model.predict(predict_data)
-            df_pred = pd.DataFrame(index=df_stock.index)
-            df_pred['Close'] = df_stock['Close']
-            df_pred['Predict'] = np.nan
             
+            # 新しいデータフレームを作成
+            df_pred = pd.DataFrame(index=df_stock.index)
+            df_pred['Close'] = df_stock['Close'].values
+            df_pred['Predict'] = np.nan
+
+            # 予測値を追加
             last_date = df_stock.index[-1]
             future_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), periods=30, freq='B')
             
