@@ -37,8 +37,11 @@ try:
     st.write(df_stock)
 
     st.header(stock_name + " 終値と14日間平均(USD)")
-    df_stock['SMA'] = df_stock['Close'].rolling(window=14).mean()
-    df_stock2 = df_stock[['Close', 'SMA']]
+    df_stock['SMA'] = df_stock[('Close', stock_name)].rolling(window=14).mean()
+    df_stock2 = pd.DataFrame({
+        'Close': df_stock[('Close', stock_name)],
+        'SMA': df_stock['SMA']
+    })
     st.line_chart(df_stock2)
 
     # 値動きグラフ
