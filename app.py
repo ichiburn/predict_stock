@@ -44,10 +44,10 @@ try:
         # 移動平均の計算と表示
         st.header(f"{stock_name} 終値と14日間平均(USD)")
         df_stock['SMA'] = df_stock['Close'].rolling(window=14).mean()
-        f_stock2 = pd.DataFrame({
-        'Close': df_stock['Close'].values,  # .values を追加
-        'SMA': df_stock['SMA'].values       # .values を追加
-        }, index=df_stock.index)                # index を明示的に指定
+        df_stock2 = pd.DataFrame({
+        'Close': df_stock['Close'].values.flatten(),  # .flatten()を追加
+        'SMA': df_stock['SMA'].values.flatten()       # .flatten()を追加
+        }, index=df_stock.index)
         st.line_chart(df_stock2)
 
         # 値動きグラフ
