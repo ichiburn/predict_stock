@@ -82,14 +82,11 @@ try:
 
         def stock_predict():
             # 予測のための特徴量を準備
-            # 欠損値を削除してから特徴量を準備
-            df_pred = df_stock.dropna()  # 追加: 欠損値を持つ行を削除
-            
-            X = np.array(df_pred.drop(['label', 'SMA', 'change'], axis=1))
+            X = np.array(df_stock.drop(['label', 'SMA', 'change', 'Predict'], axis=1))
             X = StandardScaler().fit_transform(X)
             predict_data = X[-30:]
             X = X[:-30]
-            y = np.array(df_pred['label'].dropna()).flatten()
+            y = np.array(df_stock['label'].dropna()).flatten()
             y = y[:-30]
 
             # データの分割
@@ -101,7 +98,6 @@ try:
 
             # 精度の評価
             accuracy = model.score(X_test, y_test)
-            # 少数第一位で四捨五入
             st.write(f'正答率は{round(accuracy * 100, 1)}%です。')
 
             # 信頼度の表示
@@ -116,23 +112,28 @@ try:
 
             # 検証データを用いて検証してみる
             predicted_data = model.predict(predict_data)
-            df_stock['Predict'] = np.nan
-            last_date = df_stock.iloc[-1].name
-            one_day = 86400
-            next_unix = last_date.timestamp() + one_day
+            df_pred = pd.DataFrame(index=df_stock.index)
+            df_pred['Close'] = df_stock['Close']
+            df_pred['Predict'] = np.nan
+            
+            last_date = df_stock.index[-1]
+            future_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), periods=30, freq='B')
+            
+            for i, date in enumerate(future_dates):
+                df_pred.loc[date, 'Predict'] = predicted_data[i]
 
-            # 予測のグラフ化の部分を修正
-            df_stock['Close'].plot(figsize=(15, 6), color="green")
-            df_stock['Predict'].plot(figsize=(15, 6), color="orange")
-            plt.legend(['実際の価格', '予測価格'])
-            # x軸のフォーマットを調整
-            plt.gcf().autofmt_xdate()  # 日付の表示を見やすく調整
-            st.pyplot(plt)
+            # グラフの作成
+            fig, ax = plt.subplots(figsize=(15, 6))
+            ax.plot(df_pred.index, df_pred['Close'], color="green", label="実際の価格")
+            ax.plot(df_pred.index, df_pred['Predict'], color="orange", label="予測価格")
+            ax.legend()
+            plt.xticks(rotation=45)
+            plt.tight_layout()
+            st.pyplot(fig)
             plt.close()
             
             # Streamlit用のグラフ
-            st.line_chart(df_stock[['Close', 'Predict']])
-            st.line_chart(df_stock3)
+            st.line_chart(df_pred)
             
         # 予測ボタン
         if st.button('予測する'):
