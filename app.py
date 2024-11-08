@@ -55,17 +55,22 @@ try:
         df_stock['change'] = (((df_stock['Close'] - df_stock['Open'])) / df_stock['Open'] * 100)
         st.line_chart(df_stock['change'].tail(100))
 
-        # ローソク足
+# ローソク足
         fig = go.Figure(
             data=[go.Candlestick(
-                x = df_stock.index,
-                open = df_stock['Open'],
-                high = df_stock['High'],
-                low = df_stock['Low'],
-                close = df_stock['Close'],
-                increasing_line_color = 'green',
-                decreasing_line_color = 'red'
+                x=df_stock.index,
+                open=df_stock['Open'].values.flatten(),   # .values.flatten() を追加
+                high=df_stock['High'].values.flatten(),   # .values.flatten() を追加
+                low=df_stock['Low'].values.flatten(),     # .values.flatten() を追加
+                close=df_stock['Close'].values.flatten(), # .values.flatten() を追加
+                increasing_line_color='green',
+                decreasing_line_color='red'
             )]
+        )
+        fig.update_layout(                               # レイアウトの設定を追加
+            title=f'{stock_name}のローソク足チャート',
+            yaxis_title='株価 (USD)',
+            xaxis_title='日付'
         )
         st.header(f"{stock_name} キャンドルスティック")
         st.plotly_chart(fig)
@@ -75,22 +80,26 @@ try:
 
         st.header(f'{stock_name} 1か月後を予測しよう（USD）')
 
-        def stock_predict():
+def stock_predict():
             # 予測のための特徴量を準備
             X = np.array(df_stock.drop(['label', 'SMA', 'change'], axis=1))
+            # sklearn.preprocessing.scale を StandardScaler() に変更
             X = StandardScaler().fit_transform(X)
             predict_data = X[-30:]
             X = X[:-30]
-            y = np.array(df_stock['label'].dropna())
+            y = np.array(df_stock['label'].dropna()).flatten()
             y = y[:-30]
 
             # データの分割
-            X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(X, y, test_size=0.2)
+            # sklearn.model_selection. を削除
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
             # モデルの訓練
-            model = sklearn.linear_model.LinearRegression()
+            # sklearn.linear_model. を削除
+            model = LinearRegression()
             model.fit(X_train, y_train)
 
+            # 以下は同じ
             # 精度の評価
             accuracy = model.score(X_test, y_test)
             # 少数第一位で四捨五入
