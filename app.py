@@ -90,7 +90,7 @@ try:
             predict_data = scaler.transform(df_pred[feature_columns][-30:])
 
             # データの分割
-            X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+            X_train, X_test, y_train, y_test = train_test_split(X_scaled[:-30], y, test_size=0.2, random_state=42)
 
             # モデルの訓練
             model = LinearRegression()
@@ -117,28 +117,31 @@ try:
             future_dates = pd.date_range(
                 start=df_pred.index[-1] + pd.Timedelta(days=1),
                 periods=30,
-                freq='D'
+                freq='B'  # 営業日のみを使用
             )
 
-            future_df = pd.DataFrame(index=future_dates, columns=['Predict'])
-            future_df['Predict'] = predictions
+            # 予測結果を可視化用に準備
+            plot_df = pd.DataFrame({
+                'Date': pd.concat([df_pred.index, pd.Series(future_dates)]),
+                'Actual': pd.concat([pd.Series(df_pred['Close']), pd.Series([np.nan] * 30)]),
+                'Predicted': pd.concat([pd.Series([np.nan] * len(df_pred)), pd.Series(predictions)])
+            })
 
-            # 結果の可視化
+            # Matplotlib でのプロット
             plt.figure(figsize=(15, 6))
-            plt.plot(df_pred.index, df_pred['Close'], color='green', label='Close')
-            plt.plot(future_df.index, future_df['Predict'], color='orange', label='Predict')
+            plt.plot(plot_df['Date'], plot_df['Actual'], color='green', label='実際の価格')
+            plt.plot(plot_df['Date'], plot_df['Predicted'], color='orange', label='予測価格')
             plt.legend()
             plt.xticks(rotation=45)
+            plt.title(f"{stock_name}の株価予測")
             plt.tight_layout()
             
             st.pyplot(plt)
+            plt.close()
 
             # Streamlit用のグラフ
-            result_df = pd.DataFrame({
-                'Close': df_pred['Close'],
-            })
-            result_df = pd.concat([result_df, future_df])
-            st.line_chart(result_df)
+            plot_df.set_index('Date', inplace=True)
+            st.line_chart(plot_df[['Actual', 'Predicted']])
 
         # 予測ボタン
         if st.button('予測する'):
